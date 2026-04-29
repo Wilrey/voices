@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prueba de 10 voces</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#121a31;
+      --panel-2:#182341;
+      --text:#f3f6ff;
+      --muted:#aeb8d3;
+      --accent:#79a8ff;
+      --accent-2:#9bd0ff;
+      --line:rgba(255,255,255,.10);
+      --ok:#9fe3b1;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      background:linear-gradient(180deg,#08101f 0%, #0d1530 100%);
+      color:var(--text);
+    }
+    .wrap{max-width:1180px;margin:0 auto;padding:28px 18px 36px}
+    .hero{
+      background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:22px 20px;
+      box-shadow:0 10px 32px rgba(0,0,0,.28);
+      margin-bottom:18px;
+    }
+    h1{margin:0 0 10px;font-size:clamp(26px,4vw,42px);line-height:1.05}
+    .lead{margin:0;color:var(--muted);font-size:16px;line-height:1.55}
+    .topbar{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:16px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      background:rgba(121,168,255,.12);
+      color:#dce7ff;
+      border:1px solid rgba(121,168,255,.28);
+      border-radius:999px;
+      padding:10px 14px;
+      font-size:14px;
+    }
+    .control{
+      appearance:none;
+      border:none;
+      border-radius:12px;
+      background:linear-gradient(180deg,#8cc3ff,#6d92ff);
+      color:#08101f;
+      font-weight:800;
+      padding:12px 16px;
+      cursor:pointer;
+    }
+    .control.secondary{
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+    .phrase{
+      margin:18px 0 8px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px 18px;
+    }
+    .phrase-label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);margin-bottom:8px}
+    .phrase-text{font-size:20px;line-height:1.45;font-weight:700}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      gap:14px;
+      margin-top:18px;
+    }
+    .card{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:18px;
+      box-shadow:0 10px 28px rgba(0,0,0,.22);
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-height:240px;
+    }
+    .card h2{
+      margin:0;
+      font-size:18px;
+      line-height:1.2;
+    }
+    .mini{
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.45;
+      margin:0;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--accent-2);
+      font-weight:800;
+    }
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:auto}
+    .btn{
+      appearance:none;
+      border:none;
+      border-radius:12px;
+      padding:11px 14px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .btn.play{background:#eff5ff;color:#0b1020}
+    .btn.stop{background:rgba(255,255,255,.08);color:var(--text);border:1px solid var(--line)}
+    .info{
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      min-height:76px;
+      color:#dfe7ff;
+      font-size:13px;
+      line-height:1.5;
+      white-space:pre-line;
+    }
+    .ok{color:var(--ok)}
+    details{
+      margin-top:18px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px 16px;
+    }
+    summary{cursor:pointer;font-weight:800}
+    .voices-list{margin-top:12px;display:grid;gap:8px}
+    .voice-row{
+      font-size:13px;
+      color:var(--muted);
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:rgba(255,255,255,.03);
+    }
+    @media (max-width:640px){
+      .phrase-text{font-size:18px}
+      .hero{padding:18px 16px}
+      .card{min-height:auto}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Prueba rápida de 10 voces</h1>
+      <p class="lead">La misma frase, 10 perfiles distintos. Cada tarjeta te dirá la voz real que ha usado el navegador, para que podamos localizar cuál era la buena.</p>
+      <div class="topbar">
+        <span class="pill" id="voiceCount">Cargando voces…</span>
+        <button class="control" id="stopAll">Parar todo</button>
+        <button class="control secondary" id="reloadVoices">Recargar voces</button>
+      </div>
+      <div class="phrase">
+        <div class="phrase-label">Frase de prueba</div>
+        <div class="phrase-text" id="sampleText">Toledo y Segovia están en otra liga. Si esta era la voz buena, aquí la vamos a encontrar.</div>
+      </div>
+    </section>
+
+    <section class="grid" id="cards"></section>
+
+    <details>
+      <summary>Ver todas las voces detectadas en este dispositivo</summary>
+      <div class="voices-list" id="voicesList"></div>
+    </details>
+  </div>
+
+  <script>
+    (function(){
+      const synth = window.speechSynthesis;
+      const sampleText = document.getElementById('sampleText').innerText.trim();
+      const cardsEl = document.getElementById('cards');
+      const voicesListEl = document.getElementById('voicesList');
+      const voiceCountEl = document.getElementById('voiceCount');
+      const maleHints = /(male|man|hombre|alvaro|álvaro|jorge|diego|carlos|pablo|alejandro|gabriel|martin|martín|antonio|miguel|enrique|andres|andrés|raul|raúl|juan|pedro|david|daniel|sergio|sergey|sergei|ivan|dmitri|dmitry|maxim|maksim|pavel|nikolai|alexander|alexei|kirill|yuri|anton|oleg|vladimir|boris|george|michael|thomas|alex|fred)/i;
+
+      let activeUtterance = null;
+      let activeButton = null;
+
+      function voiceText(v){
+        return `${v.name || ''} ${v.voiceURI || ''} ${v.lang || ''}`;
+      }
+      function isSpanish(v){
+        return /^es/i.test(v.lang || '') || /spanish|español/i.test(voiceText(v));
+      }
+      function allVoices(){
+        return synth ? (synth.getVoices() || []) : [];
+      }
+      function spanishVoices(){
+        return allVoices().filter(isSpanish);
+      }
+      function pickByScore(candidates, scorer){
+        if (!candidates.length) return null;
+        return candidates
+          .map(v => [scorer(v), v])
+          .sort((a,b) => b[0] - a[0])[0][1];
+      }
+      function scoreMaleSpanish(v){
+        const t = voiceText(v);
+        let score = 0;
+        if (isSpanish(v)) score += 6;
+        if (maleHints.test(t)) score += 5;
+        if (/es[-_](ES|MX|AR|US|419|CO|CL|PE)/i.test(v.lang || '')) score += 3;
+        if (/google|chrome|android|microsoft|apple|siri/i.test(t)) score += 1;
+        return score;
+      }
+      function pickInitial(){
+        return allVoices().find(isSpanish) || null;
+      }
+      function pickHistorica(){
+        return allVoices().find(v => /^es-ES/i.test(v.lang || '')) || pickInitial();
+      }
+      function pickSpainExact(){
+        return allVoices().find(v => /^es-ES/i.test(v.lang || ''))
+          || allVoices().find(v => /spanish\s*\(spain\)/i.test(voiceText(v)))
+          || pickHistorica();
+      }
+      function pickLatam(){
+        const latam = allVoices().filter(v => isSpanish(v) && /es[-_](MX|419|US|AR|CO|CL|PE|VE|UY|EC|BO|PY|DO|GT|HN|NI|PA|SV|CR|CU|PR)/i.test(v.lang || ''));
+        return pickByScore(latam, v => (maleHints.test(voiceText(v)) ? 10 : 0) + 3) || pickInitial();
+      }
+      function pickMaleAny(){
+        const span = spanishVoices();
+        return pickByScore(span, v => scoreMaleSpanish(v)) || pickInitial();
+      }
+      function pickMaleSpain(){
+        const span = allVoices().filter(v => isSpanish(v) && /^es-ES/i.test(v.lang || ''));
+        return pickByScore(span, v => (maleHints.test(voiceText(v)) ? 10 : 0) + 3) || pickHistorica();
+      }
+      function pickGoogle(){
+        const list = allVoices().filter(v => isSpanish(v) && /google|chrome|android/i.test(voiceText(v)));
+        return pickByScore(list, v => (maleHints.test(voiceText(v)) ? 10 : 0) + 3) || pickMaleAny();
+      }
+      function pickMicrosoft(){
+        const list = allVoices().filter(v => isSpanish(v) && /microsoft|pablo|alvaro|álvaro|jorge|dalia|elvira|helena/i.test(voiceText(v)));
+        return pickByScore(list, v => (maleHints.test(voiceText(v)) ? 10 : 0) + 3) || pickMaleAny();
+      }
+      function pickApple(){
+        const list = allVoices().filter(v => isSpanish(v) && /apple|siri|monica|mónica|jorge|diego|paulina|soledad/i.test(voiceText(v)));
+        return pickByScore(list, v => (maleHints.test(voiceText(v)) ? 10 : 0) + 3) || pickMaleAny();
+      }
+      function pickScoredV4(){
+        const list = spanishVoices();
+        return pickByScore(list, v => {
+          const t = voiceText(v);
+          let score = 0;
+          if (maleHints.test(t)) score += 5;
+          if (/es[-_](ES|MX|AR|US|419)/i.test(v.lang || '')) score += 4;
+          return score;
+        }) || pickMaleAny();
+      }
+      function pickSystemDefault(){
+        return null;
+      }
+
+      const profiles = [
+        {
+          id:'p1',
+          title:'01 · Versión inicial',
+          desc:'La lógica más simple de las primeras versiones: coger la primera voz en español que encuentre el navegador.',
+          picker: pickInitial,
+          rate:1,
+          pitch:1,
+          note:'Muy probablemente la voz “buena” salió de aquí o de algo muy parecido.'
+        },
+        {
+          id:'p2',
+          title:'02 · Automática del sistema',
+          desc:'No fuerza una voz concreta. Solo pone español y deja que el navegador elija por su cuenta.',
+          picker: pickSystemDefault,
+          rate:1,
+          pitch:1,
+          note:'Útil si el móvil ya tiene una voz española favorita por defecto.'
+        },
+        {
+          id:'p3',
+          title:'03 · Histórica es-ES',
+          desc:'Busca primero una voz de España y, si no la ve, cae a la primera española disponible.',
+          picker: pickHistorica,
+          rate:1,
+          pitch:1,
+          note:'Se parece a las versiones medias, más fijas y menos experimentales.'
+        },
+        {
+          id:'p4',
+          title:'04 · España exacta',
+          desc:'Intenta quedarse con una voz claramente española de España, sin mezclar regiones.',
+          picker: pickSpainExact,
+          rate:0.99,
+          pitch:0.98,
+          note:'Si buscas una voz más “peninsular”, esta es la prueba limpia.'
+        },
+        {
+          id:'p5',
+          title:'05 · Latino neutro',
+          desc:'Da prioridad a español latino o neutro, por si la buena venía de una voz es-MX, es-419 o similar.',
+          picker: pickLatam,
+          rate:1.0,
+          pitch:0.98,
+          note:'Sirve para comparar España vs. Latino sin tocar el texto.'
+        },
+        {
+          id:'p6',
+          title:'06 · Chico español',
+          desc:'La lógica que intentó recuperar una voz de chico: prioriza nombres masculinos dentro de las voces en español.',
+          picker: pickMaleAny,
+          rate:0.99,
+          pitch:0.95,
+          note:'Esta es la heredera directa de la búsqueda de “voz de chico”.'
+        },
+        {
+          id:'p7',
+          title:'07 · Trilingüe v4',
+          desc:'Usa el sistema de puntuación de la versión trilingüe, pero solo en español.',
+          picker: pickScoredV4,
+          rate:0.98,
+          pitch:0.95,
+          note:'Fue la lógica más “inteligente” que metimos para filtrar voces.'
+        },
+        {
+          id:'p8',
+          title:'08 · Google / Chrome',
+          desc:'Intenta usar una voz española del entorno Google, Chrome o Android si existe en este dispositivo.',
+          picker: pickGoogle,
+          rate:1.0,
+          pitch:0.97,
+          note:'A veces estas voces suenan más limpias y más naturales.'
+        },
+        {
+          id:'p9',
+          title:'09 · Microsoft / Windows',
+          desc:'Intenta usar una voz española de Microsoft o voces típicas de Windows si están instaladas.',
+          picker: pickMicrosoft,
+          rate:0.99,
+          pitch:0.97,
+          note:'Buena para detectar si la voz buena venía del sistema y no del navegador.'
+        },
+        {
+          id:'p10',
+          title:'10 · Apple / Siri / chico grave',
+          desc:'Busca una voz tipo Apple o Siri; si no la encuentra, usa la mejor voz masculina y la hace un poco más grave.',
+          picker: function(){ return pickApple() || pickMaleAny(); },
+          rate:0.97,
+          pitch:0.84,
+          note:'Esta prueba empuja el timbre hacia algo más “voz de chico”.'
+        }
+      ];
+
+      function renderCards(){
+        cardsEl.innerHTML = profiles.map(p => `
+          <article class="card" data-id="${p.id}">
+            <div class="badge">Prueba ${p.id.replace('p','')}</div>
+            <h2>${p.title}</h2>
+            <p class="mini">${p.desc}</p>
+            <p class="mini">${p.note}</p>
+            <div class="actions">
+              <button class="btn play" data-action="play" data-id="${p.id}">Escuchar</button>
+              <button class="btn stop" data-action="stop" data-id="${p.id}">Parar</button>
+            </div>
+            <div class="info" id="info-${p.id}">Todavía no se ha probado.</div>
+          </article>
+        `).join('');
+      }
+
+      function renderVoicesList(){
+        const voices = allVoices();
+        voiceCountEl.textContent = voices.length
+          ? `${voices.length} voces detectadas · ${spanishVoices().length} en español`
+          : 'No se han detectado voces todavía';
+        voicesListEl.innerHTML = voices.length
+          ? voices.map(v => `<div class="voice-row"><strong>${escapeHtml(v.name || 'Sin nombre')}</strong> · ${escapeHtml(v.lang || 'sin idioma')}<br>${escapeHtml(v.voiceURI || '')}${v.default ? ' · predeterminada' : ''}${v.localService ? ' · local' : ''}</div>`).join('')
+          : '<div class="voice-row">Todavía no han aparecido voces. Pulsa “Recargar voces” o prueba un botón.</div>';
+      }
+
+      function escapeHtml(str){
+        return String(str)
+          .replaceAll('&','&amp;')
+          .replaceAll('<','&lt;')
+          .replaceAll('>','&gt;');
+      }
+
+      function setInfo(id, text, ok){
+        const box = document.getElementById(`info-${id}`);
+        if (!box) return;
+        box.innerHTML = ok ? `<span class="ok">${escapeHtml(text)}</span>` : escapeHtml(text);
+      }
+
+      function stopAll(){
+        if (!synth) return;
+        synth.cancel();
+        activeUtterance = null;
+        if (activeButton) activeButton.disabled = false;
+        activeButton = null;
+      }
+
+      function speakProfile(profile, button){
+        if (!synth) {
+          setInfo(profile.id, 'Este navegador no soporta speechSynthesis.', false);
+          return;
+        }
+        const voices = allVoices();
+        if (!voices.length) {
+          renderVoicesList();
+        }
+        stopAll();
+        const utter = new SpeechSynthesisUtterance(sampleText);
+        utter.lang = 'es-ES';
+        utter.rate = profile.rate;
+        utter.pitch = profile.pitch;
+        utter.volume = 1;
+        const selected = profile.picker ? profile.picker() : null;
+        if (selected) utter.voice = selected;
+        const chosenText = selected
+          ? `Voz usada: ${selected.name} · ${selected.lang}\nrate ${profile.rate.toFixed(2)} · pitch ${profile.pitch.toFixed(2)}`
+          : `Voz usada: automática del sistema\nrate ${profile.rate.toFixed(2)} · pitch ${profile.pitch.toFixed(2)}`;
+        setInfo(profile.id, chosenText, true);
+        utter.onstart = function(){
+          activeUtterance = utter;
+          activeButton = button;
+        };
+        utter.onend = function(){
+          activeUtterance = null;
+          if (activeButton) activeButton.disabled = false;
+          activeButton = null;
+        };
+        utter.onerror = function(){
+          setInfo(profile.id, chosenText + '\nHubo un error al reproducir.', false);
+          activeUtterance = null;
+          if (activeButton) activeButton.disabled = false;
+          activeButton = null;
+        };
+        button.disabled = true;
+        synth.speak(utter);
+      }
+
+      renderCards();
+      renderVoicesList();
+
+      cardsEl.addEventListener('click', function(e){
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const id = btn.dataset.id;
+        const profile = profiles.find(p => p.id === id);
+        if (!profile) return;
+        const action = btn.dataset.action;
+        if (action === 'stop') {
+          stopAll();
+          return;
+        }
+        if (action === 'play') {
+          speakProfile(profile, btn);
+        }
+      });
+
+      document.getElementById('stopAll').addEventListener('click', stopAll);
+      document.getElementById('reloadVoices').addEventListener('click', function(){
+        renderVoicesList();
+      });
+
+      if (synth && typeof synth.onvoiceschanged !== 'undefined') {
+        synth.onvoiceschanged = function(){
+          renderVoicesList();
+        };
+      }
+
+      setTimeout(renderVoicesList, 400);
+      setTimeout(renderVoicesList, 1200);
+    })();
+  </script>
+</body>
+</html>
